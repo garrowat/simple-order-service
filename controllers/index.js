@@ -1,38 +1,48 @@
-const models = require('../models');
+const { models } = require('../models');
 
 module.exports = {
   inventory: {
-    create: () => {
+    create: async (req, res) => {
+      const { name, description, price, quantity } = req.body;
+      console.log( req.body )
+      await models.Inventory.create(
+        {
+          name,
+          description,
+          price,
+          units_available: quantity,
+        },
+      ).catch((err) => res.status(500).send('Could not create record'))
+      res.status(201).send('Record created');
+    },
+    readAll: (req, res) => {
 
     },
-    readAll: () => {
+    readOne: (req, res) => {
 
     },
-    readOne: () => {
+    update: (req, res) => {
 
     },
-    update: () => {
-
-    },
-    delete: () => {
+    delete: (req, res) => {
 
     }
   },
 
   orders: {
-    create: () => {
+    create: (req, res) => {
+      const order = req.body;
+    },
+    readAll: (req, res) => {
 
     },
-    readAll: () => {
+    readOne: (req, res) => {
 
     },
-    readOne: () => {
+    update: (req, res) => {
 
     },
-    update: () => {
-
-    },
-    delete: () => {
+    delete: (req, res) => {
 
     }
   },
