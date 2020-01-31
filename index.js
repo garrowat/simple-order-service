@@ -1,29 +1,37 @@
 const express = require('express');
+const { sequelize } = require('./models');
 const { inventory, orders } = require('./controllers');
 
 const app = express();
-const PORT = process.env.PORT || '3000';
+const PORT = '3000';
 
-app.post('/inventory', inventory);
+app.use(express.json());
 
-app.get('/inventory', inventory);
+app.post('/inventory', inventory.create);
 
-app.get('/inventory/:id', inventory);
+app.get('/inventory', inventory.readAll);
 
-app.put('/inventory/:id', inventory);
+app.get('/inventory/:id', inventory.readOne);
 
-app.delete('/inventory/:id', inventory);
+app.put('/inventory/:id', inventory.update);
 
-app.post('/orders', orders);
+app.delete('/inventory/:id', inventory.delete);
 
-app.get('/orders', orders);
+app.post('/orders', orders.create);
 
-app.get('/orders/:id', orders);
+app.get('/orders', orders.readAll);
 
-app.put('/orders/:id', orders);
+app.get('/orders/:id', orders.readOne);
 
-app.delete('/orders/:id', orders);
+app.put('/orders/:id', orders.update);
 
-app.listen(PORT, () => {
-  console.log(`Server up and running on port ${PORT}`);
+app.delete('/orders/:id', orders.delete);
+
+const eraseDatabaseOnSync = true;
+
+sequelize.sync({ force: eraseDatabaseOnSync }).then(async () => {
+  app.listen(PORT, () => {
+    console.log(`Server up and running on port ${PORT}`);
+  });
 });
+
