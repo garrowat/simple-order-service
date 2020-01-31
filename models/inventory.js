@@ -15,6 +15,10 @@ const inventory = (sequelize, DataTypes) => {
     },
   });
 
+  Inventory.associate = models => {
+    Inventory.hasMany(models.OrderDetails, { onDelete: 'CASCADE' });
+  };
+
   return Inventory;
 };
 

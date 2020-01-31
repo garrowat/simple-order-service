@@ -11,6 +11,10 @@ const order = (sequelize, DataTypes) => {
     },
   });
 
+  Order.associate = models => {
+    Order.hasMany(models.OrderDetails, { onDelete: 'CASCADE' });
+  };
+
   return Order;
 };
 
