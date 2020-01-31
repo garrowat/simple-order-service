@@ -12,7 +12,7 @@ module.exports = {
           price,
           units_available: quantity,
         },
-      ).catch((err) => res.status(500).send('Could not create record'))
+      ).catch((err) => res.status(500).send('Could not create record.'))
       res.status(201).send('Record created');
     },
 
@@ -35,18 +35,72 @@ module.exports = {
     },
 
     update: async (req, res) => {
+      const { id } = req.params;
+      const { name, description, price, quantity } = req.body;
 
+      const original = await models.Inventory.findByPk(id).catch((err) => {
+        res.status(500).send('Error searching inventory.');
+      });
+      if (!original) {
+        res.status(400).send('Item does not exist in inventory.');
+      } else {
+        await models.Inventory.update({
+          name,
+          description,
+          price,
+          units_available: quantity,
+        }, {
+          where: {
+            id
+          }
+        });
+        res.status(200).send(original);
+      }
     },
 
     delete: async (req, res) => {
-
+      const { id } = req.params;
+      const original = await models.Inventory.findByPk(id).catch((err) => {
+        res.status(500).send('Error searching inventory.');
+      });
+      if (!original) {
+        res.status(400).send('Item does not exist in inventory.');
+      } else {
+        await models.Inventory.destroy({
+          where: {
+            id
+          }
+        });
+        res.status(200).send(original);
+      }
     }
   },
 
   orders: {
 
     create: async (req, res) => {
-      const order = req.body;
+      const { email, order_date, status } = req.body;
+      let { items } = req.body;
+
+      const order = await models.Order.create(
+        {
+          email,
+          order_date,
+          status,
+        },
+      ).catch((err) => res.status(500).send('Error creating order.'))
+
+      if (order) {
+        items = items.map(item => {
+          const newItem = { ...item };
+          newItem.orderId = order.id;
+          return newItem;
+        });
+
+        await models.OrderDetails.bulkCreate(items)
+          .catch((err) => res.status(500).send('Error adding items to order.'));
+        res.status(201).send(order);
+      }
     },
 
     readAll: async (req, res) => {
