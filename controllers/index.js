@@ -136,24 +136,97 @@ const orders = {
       .catch((err) => res.status(500).send(`Error adding items to order: ${err}`));
 
     res.status(201).send({ order, details });
-
   },
 
   readAll: async (req, res) => {
-
+    const orders = await models.Order.findAll()
+      .catch((err) => res.status(500).send(`Error getting orders: ${err}`));
+    res.status(200).send({ orders });
   },
 
   readOne: async (req, res) => {
-
+    const { id } = req.params;
+    const order = await models.Order.findByPk(id).catch((err) => {
+      res.status(500).send(`Error searching orders: ${err}`);
+    });
+    if (!order) {
+      res.status(400).send('Could not find order.')
+    } else {
+      const details = await orderDetails.getAllByOrderId(id)
+        .catch((err) => res.status(500).send(`Error getting order details: ${err}`));
+      res.status(200).send({ order, details });
+    }
+    return { order, details };
   },
 
   update: async (req, res) => {
+    const { id } = req.params;
+    const { email, order_date, status } = req.body;
 
+    if (status === 'cancelled') {
+      const details = await orderDetails.getAllByOrderId(id);
+      details.forEach(async (orderDetail) => {
+        await inventory.adjustAvailableInventory(orderDetail)
+          .catch((err) => res.status(500).send(`Error adjusting inventory: ${err}`));
+      });
+    }
+
+    const original = await models.Order.findByPk(id).catch((err) => {
+      res.status(500).send(`Error searching inventory: ${err}`);
+    });
+    if (!original) {
+      res.status(400).send('Order does not exist.');
+      return;
+    } else {
+      await models.Order.update({
+        email,
+        order_date,
+        status,
+      }, {
+        where: {
+          id
+        }
+      });
+      res.status(200).send(original);
+    }
   },
 
   delete: async (req, res) => {
+    const { id } = req.params;
+    const original = await models.Order.findByPk(id)
+      .catch((err) => {res.status(500).send(`Error deleting order: ${err}`);
+    });
+    if (!original) {
+      res.status(400).send('Order does not exist.');
+      return;
+    } else {
+      if (original.status !== 'cancelled') {
+        const details = await orderDetails.getAllByOrderId(id);
+        details.forEach(async (orderDetail) => {
+          await inventory.adjustAvailableInventory(orderDetail)
+            .catch((err) => res.status(500).send(`Error adjusting inventory: ${err}`));
+        });
+      }
+      await models.Order.destroy({
+        where: {
+          id
+        }
+      });
+      return res.status(200).send(original);
+    }
+  },
+};
 
-  }
+const orderDetails = {
+
+  getAllByOrderId: async (orderId) => {
+    const allOrderDetails = await models.OrderDetails.findAll({
+      where: {
+        orderId,
+      },
+    }).catch((err) => res.status(500).send(`Error getting order details: ${err}`));
+    return allOrderDetails;
+  },
 };
 
 module.exports = { inventory, orders };
