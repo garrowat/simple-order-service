@@ -1,9 +1,7 @@
 const express = require('express');
-const { sequelize } = require('./models');
 const { inventory, orders } = require('./controllers');
 
 const app = express();
-const PORT = process.env.PORT || '3000';
 
 app.use(express.json());
 
@@ -27,11 +25,4 @@ app.put('/orders/:id', orders.update);
 
 app.delete('/orders/:id', orders.delete);
 
-const eraseDatabaseOnSync = true;
-
-sequelize.sync({ force: eraseDatabaseOnSync }).then(async () => {
-  app.listen(PORT, () => {
-    console.log(`Server up and running on port ${PORT}`);
-  });
-});
-
+module.exports = app;
