@@ -3,7 +3,7 @@ const { models } = require('../models');
 const inventory = {
   create: async (req, res) => {
     const { name, description, price, quantity } = req.body;
-    await models.Inventory.create(
+    const item = await models.Inventory.create(
       {
         name,
         description,
@@ -11,13 +11,13 @@ const inventory = {
         units_available: quantity,
       },
     ).catch((err) => res.status(500).send(`Could not create record: ${err}`))
-    res.status(201).send('Record created');
+    res.status(201).send({ item });
   },
 
   readAll: async (req, res) => {
     const items = await models.Inventory.findAll()
       .catch((err) => res.status(500).send(`Could not read Inventory: ${err}`));
-    res.status(200).send(items);
+    res.status(200).send({ items });
   },
 
   readOne: async (req, res) => {
@@ -26,9 +26,9 @@ const inventory = {
       res.status(500).send(`Error searching inventory: ${err}`);
     });
     if (!item) {
-      res.status(400).send('Could not find item.')
+      res.status(400).send([ 'Could not find item.' ])
     } else {
-      res.status(200).send(item);
+      res.status(200).send({ item });
     }
     return item;
   },
@@ -43,7 +43,7 @@ const inventory = {
     if (!original) {
       res.status(400).send('Item does not exist in inventory.');
     } else {
-      await models.Inventory.update({
+      const item = await models.Inventory.update({
         name,
         description,
         price,
@@ -53,7 +53,7 @@ const inventory = {
           id
         }
       });
-      res.status(200).send(original);
+      res.status(200).send({ item });
     }
   },
 
@@ -166,7 +166,7 @@ const orders = {
     if (status === 'cancelled') {
       const details = await orderDetails.getAllByOrderId(id);
       details.forEach(async (orderDetail) => {
-        await inventory.adjustAvailableInventory(orderDetail)
+        await inventory.adjustAvailableInventory(orderDetail) // if cancelling the order, return to inventory
           .catch((err) => res.status(500).send(`Error adjusting inventory: ${err}`));
       });
     }
@@ -200,7 +200,7 @@ const orders = {
       res.status(400).send('Order does not exist.');
       return;
     } else {
-      if (original.status !== 'cancelled') {
+      if (original.status !== 'cancelled') { // if the order isn't already cancelled, return items to inventory
         const details = await orderDetails.getAllByOrderId(id);
         details.forEach(async (orderDetail) => {
           await inventory.adjustAvailableInventory(orderDetail)
