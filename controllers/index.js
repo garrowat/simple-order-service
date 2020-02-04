@@ -108,7 +108,7 @@ const orders = {
       const unitsAvailable = await inventory.getAvailableInventory(id)
        .catch((err) => res.status(500).send(`Error getting inventory: ${err}`));
       if (unitsAvailable < item.quantity) {
-        res.status(400).send('Not enough stock, order cancelled');
+        if (inStock) res.status(400).send('Not enough stock, order cancelled');
         inStock = false;
       }
     });
