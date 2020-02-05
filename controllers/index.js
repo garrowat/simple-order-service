@@ -114,7 +114,7 @@ const orders = {
         });
 
       if (unitsAvailable < item.quantity) {
-        if (inStock) res.status(400).send('Not enough stock, order cancelled');
+        res.status(400).send('Not enough stock, order cancelled');
         return;
       }
     }
@@ -191,10 +191,10 @@ const orders = {
 
     if (status === 'cancelled') {
       const details = await orderDetails.getAllByOrderId(id);
-      details.forEach(async (orderDetail) => {
+      for (let orderDetail of details) {
         await inventory.adjustAvailableInventory(orderDetail) // if cancelling the order, return to inventory
           .catch((err) => res.status(500).send(`Error adjusting inventory: ${err}`));
-      });
+      }
     }
 
     const original = await models.Order.findByPk(id).catch((err) => {
