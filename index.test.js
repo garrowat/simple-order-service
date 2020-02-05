@@ -262,8 +262,43 @@ describe('Order routes', () => {
     expect(inventory.body.items[0].units_available).toBe(10);
   });
 
-  it ('should delete one order', () => {
+  it ('should delete one order', async () => {
+    await sequelize.sync({ force: true });
 
+    await request(app)
+      .post('/inventory')
+      .send({
+        "name": "John's Bears",
+        "description": "Gummies that vaguely resemble bears",
+        "price": 19.99,
+        "quantity": 10
+      });
+
+    await request(app)
+      .post('/orders')
+      .send({
+        "email": "me@aol.com",
+        "order_date": "2020-01-31T19:21:38.587Z",
+        "status": "pending",
+        "items": [
+          {
+            "inventoryId": 1,
+            "quantity": 5
+          },
+          {
+            "inventoryId": 1,
+            "quantity": 5
+          }
+        ]
+      });
+
+      await request(app)
+        .delete('/orders/1')
+
+      const order = await request(app)
+        .get('/orders/1')
+
+      expect(order.body.error).toBe('Order does not exist.');
   });
 
 });

@@ -177,7 +177,7 @@ const orders = {
       res.status(500).send(`Error searching orders: ${err}`);
     });
     if (!order) {
-      return;
+      res.status(404).send({ error: `Order does not exist.` });
     } else {
       const details = await orderDetails.getAllByOrderId(id)
         .catch((err) => res.status(500).send(`Error getting order details: ${err}`));
@@ -201,7 +201,7 @@ const orders = {
       res.status(500).send(`Error searching inventory: ${err}`);
     });
     if (!original) {
-      res.status(400).send('Order does not exist.');
+      res.status(404).send('Order does not exist.');
       return;
     } else {
       await models.Order.update({
