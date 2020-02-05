@@ -209,4 +209,61 @@ describe('Order routes', () => {
     expect(order.body.order.id).toBe(1);
   });
 
+  it ('should update one order', async () => {
+    await sequelize.sync({ force: true });
+
+    await request(app)
+      .post('/inventory')
+      .send({
+        "name": "John's Bears",
+        "description": "Gummies that vaguely resemble bears",
+        "price": 19.99,
+        "quantity": 10
+      });
+
+    await request(app)
+      .post('/orders')
+      .send({
+        "email": "me@aol.com",
+        "order_date": "2020-01-31T19:21:38.587Z",
+        "status": "pending",
+        "items": [
+          {
+            "inventoryId": 1,
+            "quantity": 5
+          },
+          {
+            "inventoryId": 1,
+            "quantity": 5
+          }
+        ]
+      });
+
+    let inventory = await request(app)
+      .get('/inventory');
+
+    expect(inventory.body.items[0].units_available).toBe(0);
+
+    await request(app)
+      .put('/orders/1')
+      .send({
+        "email": "me@silk.net",
+        "status": "cancelled"
+      });
+
+    const order = await request(app)
+      .get('/orders/1');
+
+    inventory = await request(app)
+      .get('/inventory');
+
+    expect(order.body.order.status).toBe('cancelled');
+    expect(order.body.order.email).toBe('me@silk.net');
+    expect(inventory.body.items[0].units_available).toBe(10);
+  });
+
+  it ('should delete one order', () => {
+
+  });
+
 });
