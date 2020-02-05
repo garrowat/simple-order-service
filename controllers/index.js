@@ -76,12 +76,12 @@ const inventory = {
 
   // Non-responding helper methods for use by responding controller methods
   adjustAvailableInventory: async ({ inventoryId, quantity }) => {
-    const adjustment = await models.Inventory.increment('units_available', {
+    const adjustment = (await models.Inventory.increment('units_available', {
       by: quantity,
       where: {
         id: inventoryId,
       },
-    }).catch((err) => console.log(err));
+    }).catch((err) => console.log(err)));
     return adjustment;
   },
 
@@ -102,18 +102,24 @@ const orders = {
     const { email, order_date, status } = req.body;
     let { items } = req.body;
 
-    let inStock = true;
-    items.forEach(async item => {
+    // check for available stock
+    for (let item of items) {
       const id = item.inventoryId;
       const unitsAvailable = await inventory.getAvailableInventory(id)
-       .catch((err) => res.status(500).send(`Error getting inventory: ${err}`));
+       .catch((err) => {
+         if (!hasError) {
+           res.status(500).send(`Error getting inventory: ${err}`);
+           return;
+         }
+        });
+
       if (unitsAvailable < item.quantity) {
         if (inStock) res.status(400).send('Not enough stock, order cancelled');
-        inStock = false;
+        return;
       }
-    });
-    if (!inStock) return;
+    }
 
+    // create the order
     const order = await models.Order.create(
       {
         email,
@@ -123,25 +129,46 @@ const orders = {
     ).catch((err) => res.status(500).send(`Error creating order: ${err}`));
     if (order == null) return;
 
+    // remove ordered items from inventory
+    let hasError = false;
     items = await Promise.all(items.map(async item => {
       const { inventoryId, quantity } = item;
       await inventory.adjustAvailableInventory({ inventoryId, quantity: -quantity })
-        .catch((err) => res.status(500).send(`Error adjusting inventory: ${err}`));
+        .catch((err) => {
+          if (!hasError) {
+            res.status(500).send(`Error adjusting inventory: ${err}`)
+            hasError = true;
+          }
+        });
       const newItem = { ...item };
       newItem.orderId = order.id;
       return newItem;
     }));
+    if (hasError) {
+      return;
+    }
 
+    // create order details for each item, associate to the created order entity
     const details = await models.OrderDetails.bulkCreate(items)
-      .catch((err) => res.status(500).send(`Error adding items to order: ${err}`));
+      .catch((err) => {
+        if (!hasError) {
+          res.status(500).send(`Error adding items to order: ${err}`);
+          hasError = true
+        }
+      });
+    if (hasError) {
+      return;
+    }
 
     res.status(201).send({ order, details });
+    return { order, details };
   },
 
   readAll: async (req, res) => {
     const orders = await models.Order.findAll()
       .catch((err) => res.status(500).send(`Error getting orders: ${err}`));
     res.status(200).send({ orders });
+    return { orders };
   },
 
   readOne: async (req, res) => {
@@ -150,13 +177,12 @@ const orders = {
       res.status(500).send(`Error searching orders: ${err}`);
     });
     if (!order) {
-      res.status(400).send('Could not find order.')
+      return;
     } else {
       const details = await orderDetails.getAllByOrderId(id)
         .catch((err) => res.status(500).send(`Error getting order details: ${err}`));
       res.status(200).send({ order, details });
     }
-    return { order, details };
   },
 
   update: async (req, res) => {
@@ -189,6 +215,7 @@ const orders = {
       });
       res.status(200).send(original);
     }
+    return { original };
   },
 
   delete: async (req, res) => {
