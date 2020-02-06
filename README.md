@@ -19,13 +19,13 @@
 ## Setup
 - Close this repo to your local machine
 - Ensure that you have a running Postgres server with a database and working superuser account
-- In the root directory, create a `.env` file and add the following lines:
+- Run `npm install` from the root directory
+- In the root directory, create a `.env` file (or change the [exampledotev](./exampledotenv) file and rename it to `.env` and add/change the following lines:
   - DATABASE=`(name of your database)`
   - DATABASE_USER=`(name of your superuser)`
   - DATABASE_PASSWORD=`(your superuser password)`
   - PORT=`(the port on which you'd like to expose the API)`
 - Fill the `.env` variables with your own values (PORT will, however, default to 3000 if left blank)
-- Run `npm install` from the root directory
 - Run `npm run start` to start the express server
 - Run `npm run test` to confirm that the server and db are up and running without issue
 - You should now be able to query the endpoints as shown [below](#Usage)
