@@ -6,7 +6,7 @@
 
 1. [Requirements](#Requirements)
 2. [Setup](#Setup)
-3. [Application Summary](application-summary)
+3. [Application Summary](#application-summary)
 4. [Usage](#Usage)
    - [API Summary](#api-summary)
    - [Responses](#Responses)
@@ -31,6 +31,7 @@
 - You should now be able to query the endpoints as shown [below](#Usage)
 
 ## Application Summary
+
 This API currently has two types of endpoints: `/inventory` and `/orders`. These endpoints are controlled by [/controllers/index.js](./controllers/index.js).
 
 The controllers make use of three models:
