@@ -25,6 +25,7 @@
   - DATABASE_USER=`(name of your superuser)`
   - DATABASE_PASSWORD=`(your superuser password)`
   - PORT=`(the port on which you'd like to expose the API)`
+- Although it may not matter, you should make sure to add your `.env` file to your `.gitignore` to avoid sharing your database password with curious bots
 - Fill the `.env` variables with your own values (PORT will, however, default to 3000 if left blank)
 - Run `npm run start` to start the express server
 - Run `npm run test` to confirm that the server and db are up and running without issue
