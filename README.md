@@ -42,7 +42,7 @@ The controllers make use of three models:
 
 ![SQL Schema Diagram](./readme_schema.png "Schema Diagram")
 
-For each order, there are one or more `OrderDetails` entities associated with that order's `orderId`. Each `OrderDetails` entity contains an `itemId` for the associated order and the quantity of the item that was ordered.
+For each order, there are one or more `OrderDetails` entities associated with that order's `orderId`. Each `OrderDetails` entity contains an `inventoryId` for the associated order and the quantity of the item that was ordered.
 
 ## Usage
 
