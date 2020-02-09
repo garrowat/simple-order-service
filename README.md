@@ -14,7 +14,7 @@
 
 ## Requirements
 - Node.js 6.0+
-- Postgresql (this project uses Postgres 11, but earlier version should work with sequelize and the pg package)
+- Postgresql (this project uses Postgres 11, but earlier versions should work with sequelize and the pg package)
 
 ## Setup
 - Close this repo to your local machine
