@@ -17,7 +17,7 @@
 - Postgresql (this project uses Postgres 11, but earlier versions should work with sequelize and the pg package)
 
 ## Setup
-- Close this repo to your local machine
+- Clone this repo to your local machine
 - Ensure that you have a running Postgres server with a database and working superuser account
 - Run `npm install` from the root directory
 - In the root directory, create a `.env` file (or change the [exampledotev](./exampledotenv) file and rename it to `.env` and add/change the following lines:
